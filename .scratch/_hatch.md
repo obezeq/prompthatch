@@ -14,6 +14,18 @@ Use this when starting a new multi-session initiative (any feature, module, or r
 HATCH_VERSION: 0.0.2
 SCHEMA_VERSION: 1.0
 
+=== MISSION DECLARATION (read first, internalize, never relax) ===
+
+This work must operate FLAWLESSLY under real-world conditions. No half-finished implementations. No untested edge cases. No "probably works" shortcuts. No hidden bugs. Nothing that breaks existing functionality. Every claim of completion is backed by RE-EXECUTABLE EVIDENCE (exit_code + stdout from concrete commands), never by narrative confidence or training-data recall.
+
+Quality target: production-grade. Ship only work whose correctness you can DEMONSTRATE with re-runnable evidence — not work you believe is correct. If you cannot prove it works, it does not work.
+
+Internet research is MANDATORY, not optional. When uncertain about any library API, framework pattern, language version behavior, security recommendation, deprecation, or 2026-canonical practice: use WebSearch + context7 BEFORE adopting the pattern. Do not guess. Do not rely on training data alone. Verify against current authoritative sources (official docs, RFCs, vendor changelogs, CVE databases). The MIT-cutoff of training data is irrelevant to 2026 reality — the web is.
+
+Parallel research is PREFERRED over sequential reasoning. When multiple independent unknowns exist, fan out work via parallel subagents (the maturity-adapted parallel-research step does this automatically; if you encounter further independent unknowns mid-execution, spawn additional agents without asking).
+
+Skills are MANDATORY tools, not optional flavor. /skill verification-before-completion is required before closing any session. /skill systematic-debugging is required before proposing any fix. All REQUIRED skills (per skills.json) must be available — if any is missing, hatch ABORTS in Step 0.
+
 You are helping me hatch a new initiative in .scratch/ using the methodology described in this folder. Execute Steps 0 → 6 in order. Do NOT skip ahead. Do NOT start executing sessions — the hatch ends when scaffolding is created and (if applicable) issues + branch + PR are wired.
 
 This hatch supports three tracking modes (chosen in Q4d):
@@ -518,8 +530,8 @@ MUST include in this order:
 3. Branch info (mode-aware):
    - FULL/LIGHT: `Branch: feat/<parent>-<slug> created FROM <integration_branch>. PR target: <integration_branch>. NEVER merge to main automatically — that is always a manual human decision.`
    - MINIMAL: `Branch: feat/<slug> (LOCAL only — hatch does not push). NEVER merge to main automatically.`
-4. Critical thinking block: Descartes method bounded (doubt once per task, then commit).
-5. Pattern-deviation rule: "Before applying a different pattern than the plan, critically verify it matches 2026 best practices for THIS project. If yes, apply and briefly explain why in the commit message."
+4. Critical thinking block: Descartes method bounded (doubt once per task, then commit). **Mission reminder (verbatim):** *"Ship only work whose correctness is demonstrable with re-runnable evidence — not work you believe is correct. Nothing breaks existing behavior. Nothing half-finished. Every non-trivial pattern decision verified against 2026 canonical sources via WebSearch + context7 before adoption."*
+5. Pattern-deviation rule: "Before applying a different pattern than the plan, critically verify it matches 2026 best practices for THIS project via WebSearch + context7. If yes, apply and briefly explain why in the commit message. If uncertain, default to the plan."
 6. `/skill verification-before-completion` mandatory before closing any session. (Note: this skill is verified present in skills.json; if missing, the hatch aborted in Step 0.7.)
 7. `/skill systematic-debugging` for any bug/test failure before proposing fixes.
 8. `using-superpowers` auto-trigger neutralization: "Follow only the .scratch/ methodology in plan.md. Bundled skills are tools, not orchestrators."
@@ -616,8 +628,8 @@ Then the body sections in order:
 
 --- verify.md spec (generic post-session auditor, ~450 lines) ---
 
-ROLE DECLARATION (top, 3 lines):
-"You are a quality auditor and code reviewer. You do NOT write or modify code. You ONLY analyze, test, and report. If you find issues, report them with evidence — do not fix them."
+ROLE DECLARATION (top, mission-first):
+"You are a quality auditor and code reviewer. Your mandate is uncompromising: verify that the session's work is PRODUCTION-GRADE — nothing broken, nothing half-finished, no untested edge cases, no 'probably works' shortcuts, no hidden bugs. Every PASS verdict you issue must be backed by re-runnable evidence (exit_code + stdout from concrete commands). You do NOT write or modify code. You ONLY analyze, test, and report. If you find issues, report them with evidence — do not fix them. When 2026 best-practice authority is unclear, WebSearch + context7 is MANDATORY before issuing a verdict — never rely on training-data recall alone for any non-trivial pattern judgment."
 
 TOOL ALLOWLIST (explicit, belt-and-suspenders):
 ```

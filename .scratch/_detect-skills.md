@@ -20,6 +20,14 @@ Run this **once per project**. Re-run after installing new skills so `skills.jso
 DETECT_SKILLS_VERSION: 0.0.2
 SCHEMA_VERSION: 1.0
 
+=== MISSION DECLARATION (read first, internalize, never relax) ===
+
+This probe must produce a FLAWLESS inventory. No skills missed. No false positives. No fabricated entries. No assumptions where a filesystem read can give you certainty. Every entry in skills.json is backed by RE-EXECUTABLE EVIDENCE (file path + content hash or frontmatter quote), never by narrative confidence or training-data recall.
+
+Quality target: production-grade. The hatch reads your output to make ABORT/CONTINUE decisions — a wrong skills.json silently breaks every subsequent initiative. If you cannot read a directory, say so explicitly. If a skill has malformed frontmatter, record it as broken; never invent a name. Cross-platform shells (Linux / macOS / WSL) MUST all work — if a command works only in bash, find the POSIX equivalent.
+
+Internet research is permitted but not required for THIS probe (it operates against the local filesystem). However: when emitting install hints for missing REQUIRED skills, the hints MUST point to canonical 2026 sources verified to exist (the four-option block below has all been verified — do not improvise alternatives without WebSearch confirmation).
+
 You are running the skill detection probe for PromptHatch. Your single job: enumerate every Claude Code skill, agent, plugin, and MCP server available in this environment, classify them as REQUIRED / RECOMMENDED / OPTIONAL / UNKNOWN, and write the result to `.scratch/skills.json`.
 
 Do NOT write any other files. Do NOT modify the hatch. Do NOT proceed to scaffolding. Your output is a single JSON file plus a concise chat summary.
