@@ -282,7 +282,28 @@ EOF_GH
     [ -f Cargo.toml ] && TEST_FRAMEWORK="$TEST_FRAMEWORK cargo-test"
     [ -f pom.xml ] && TEST_FRAMEWORK="$TEST_FRAMEWORK maven-surefire"
     [ -f build.gradle ] || [ -f build.gradle.kts ] && TEST_FRAMEWORK="$TEST_FRAMEWORK gradle-test"
-    
+
+    # Auto-suggest architecture / coding principles per detected stack (used as default for Q11)
+    SUGGESTED_PRINCIPLES=""
+    case "$STACK" in
+      *solidity-foundry*|*solidity-hardhat*)
+        SUGGESTED_PRINCIPLES="Cyfrin Standards (CEI, Pull over Push, custom errors, FREI-PI invariants, ReentrancyGuardTransient, Ownable2Step, calldata over memory, strict pragma)" ;;
+      *java*|*dotnet*)
+        SUGGESTED_PRINCIPLES="Hexagonal architecture (ports & adapters), SOLID, ArchUnit boundary tests, dependency injection via framework" ;;
+      *python*)
+        SUGGESTED_PRINCIPLES="Clean architecture, dependency injection, repository pattern, Pydantic at boundaries" ;;
+      *node*|*nodejs*)
+        SUGGESTED_PRINCIPLES="Layered (routes → controller → service → repository), Zod at boundaries, no circular imports" ;;
+      *go*)
+        SUGGESTED_PRINCIPLES="Standard layout, small interfaces (1-3 methods), accept interfaces return structs, errors as values" ;;
+      *rust*)
+        SUGGESTED_PRINCIPLES="Trait-based DI, NewType pattern, RAII, no unsafe outside FFI, prefer composition over inheritance" ;;
+      *react*|*vue*|*svelte*|*angular*)
+        SUGGESTED_PRINCIPLES="Feature-sliced design, composition over inheritance, component-driven, colocated styles/tests, no prop drilling" ;;
+      *)
+        SUGGESTED_PRINCIPLES="" ;;
+    esac
+
     # Suggested mode based on maturity + commit count
     case "$MATURITY" in
       empty|greenfield) SUGGESTED_MODE=MINIMAL ;;
@@ -363,7 +384,7 @@ Internalize these patterns:
 
 === STEP 2 — GATHER INPUT (single message, 10 questions) ===
 
-Ask the 10 questions below in ONE bundled message. For each question, show auto-detected defaults inline so the user can press enter to accept or type an override. If `MATURITY == empty` skip Q4-reuse-sub-question and Q4b (default to `main`) and Q9 (greenfield has no external resources yet); ask only 4 questions (Q1, Q2, Q3, Q4a). If `MATURITY == greenfield` skip Q4-reuse-sub-question; ask 8 questions.
+Ask the 10 mandatory questions plus optional Q11 below in ONE bundled message. For each question, show auto-detected defaults inline so the user can press enter to accept or type an override. If `MATURITY == empty` skip Q4-reuse-sub-question and Q4b (default to `main`) and Q9 (greenfield has no external resources yet) AND Q11 (no codebase to apply principles to); ask only 4 questions (Q1, Q2, Q3, Q4a). If `MATURITY == greenfield` skip Q4-reuse-sub-question; ask 9 questions (Q11 included). For `early`/`established`/`mature`: full 11 questions.
 
 Format the question batch like this (the user-facing rendering):
 
@@ -424,6 +445,32 @@ Q10. Policy defaults (4 toggles — default Y for all):
     10b. Require /skill verification-before-completion before closing sessions? [Y]
     10c. Mandate 2026 best-practices research before pattern adoption? [Y]
     10d. Enforce Conventional Commits? [Y]
+
+Q11. Architecture / coding principles (optional, applies to ALL sessions):
+     Free text declaring architectural disciplines / canonical patterns the
+     work in this initiative MUST follow. These ride alongside (not replacing)
+     the universal "2026 best-practice + WebSearch + context7 mandatory"
+     mandate from the MISSION DECLARATION.
+
+     Examples per stack:
+       - Solidity: "Cyfrin Standards — CEI, Pull over Push, custom errors,
+                    FREI-PI invariants, ReentrancyGuardTransient, Ownable2Step"
+       - Java / Spring / .NET: "Hexagonal architecture, SOLID, ArchUnit boundary tests"
+       - Node / NestJS / FastAPI: "Clean architecture, dependency injection,
+                                    repository pattern, ports & adapters"
+       - Go: "Standard layout, small interfaces, accept interfaces return structs"
+       - Rust: "Trait-based DI, NewType pattern, RAII, no unsafe outside FFI"
+       - Frontend (React/Vue/Svelte): "Feature-sliced design, composition over
+                                        inheritance, component-driven, no prop drilling"
+       - Generic: "SOLID, KISS, YAGNI, DRY (in that priority order)" or
+                  "Functional-first, no classes, immutable data"
+
+     Auto-detect suggestion (from STACK=$STACK): [$SUGGESTED_PRINCIPLES]
+     Press Enter to accept the suggestion, type your own to override, or
+     type "skip" / leave blank to opt out (default: rely on
+     CLAUDE.md/ARCHITECTURE.md if present; no extra principles injected).
+     Skipping is the safe default — only declare principles you are
+     prepared to enforce across every session of this initiative.
 ```
 
 === HARD STOP — END OF STEP 2 ===
@@ -443,7 +490,7 @@ After answers arrive, run cross-field validation BEFORE Step 3:
 - V13: if Q4a is an existing issue number, run `gh issue view <N>` (or `glab issue view`) — must succeed. Else: `E_PARENT_404 — Issue #<N> not found in <platform>. Verify the number or pick 'create one'.`
 - V17: if Q4b doesn't exist on remote, run `git fetch origin <branch>`. If still missing: `E_BRANCH_404 — Integration branch '<branch>' not found locally or on remote. Set it up first.`
 - V18: if Q4b ≠ DEFAULT_BRANCH from auto-detection, warn (do not abort): `▲ You picked '<branch>' but the detected default is '<default>'. Continue?`
-- V31: scan Q8 free text for secret patterns (regex bank below). If detected: `E_SECRET_DETECTED — Q8 appears to contain a secret. Redact and re-enter.`
+- V31: scan Q8 AND Q11 free text for secret patterns (regex bank below). If detected in either: `E_SECRET_DETECTED — Q8/Q11 appears to contain a secret. Redact and re-enter.`
   Secret regexes: `(sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}|gho_[A-Za-z0-9]{36}|0x[a-fA-F0-9]{64}|BEGIN [A-Z]+ PRIVATE KEY|xoxb-[A-Za-z0-9-]{40,}|AIza[0-9A-Za-z_-]{35})`
 - V11 (warn): if Q3 contains tech contradictions (react+vue, redux+zustand, ethers+viem, jest+vitest), warn: `▲ Detected potential conflict: <X> and <Y>. Confirm intent.`
 
@@ -530,6 +577,14 @@ MUST include in this order:
 3. Branch info (mode-aware):
    - FULL/LIGHT: `Branch: feat/<parent>-<slug> created FROM <integration_branch>. PR target: <integration_branch>. NEVER merge to main automatically — that is always a manual human decision.`
    - MINIMAL: `Branch: feat/<slug> (LOCAL only — hatch does not push). NEVER merge to main automatically.`
+3a. **Architecture / coding principles** (emit ONLY when `hatch_state.principles` is non-empty; omit this entire item if Q11 was skipped):
+
+    The user declared these principles for this initiative (verbatim from Q11):
+    > <hatch_state.principles>
+
+    Apply these principles consistently across ALL sessions of this initiative. They are PROJECT-SPECIFIC and additive; the universal "2026 best-practice + WebSearch + context7 mandatory" mandate from the MISSION DECLARATION still applies in full.
+
+    Conflict resolution: when a declared principle and a 2026 best-practice cross-check (verify.md PHASE 6B) disagree, flag the conflict explicitly with BOTH authorities cited. Do NOT silently override the user's declaration. Default verdict: respect the user's declaration, UNLESS the 2026 source is a security-critical correction (re-entrancy, memory-safety, supply-chain CVE, etc.) — those override declarations.
 4. Critical thinking block: Descartes method bounded (doubt once per task, then commit). **Mission reminder (verbatim):** *"Ship only work whose correctness is demonstrable with re-runnable evidence — not work you believe is correct. Nothing breaks existing behavior. Nothing half-finished. Every non-trivial pattern decision verified against 2026 canonical sources via WebSearch + context7 before adoption."*
 5. Pattern-deviation rule: "Before applying a different pattern than the plan, critically verify it matches 2026 best practices for THIS project via WebSearch + context7. If yes, apply and briefly explain why in the commit message. If uncertain, default to the plan."
 6. `/skill verification-before-completion` mandatory before closing any session. (Note: this skill is verified present in skills.json; if missing, the hatch aborted in Step 0.7.)
@@ -563,12 +618,22 @@ No prose, no duplicated rules. Pure navigation map.
 
 Sections in order:
 1. Context (why this initiative now)
+1a. **Architecture / coding principles** (ONLY emit this section when `hatch_state.principles` is non-empty / Q11 was answered):
+    - Verbatim from Q11: `<hatch_state.principles>`
+    - Suggested authoritative sources to consult during PHASE 6B cross-check (auto-derived from principle keywords; if the keywords don't map to a known canonical source, leave as "research via WebSearch + context7 in PHASE 6B"):
+      - SOLID → Robert C. Martin, *Clean Architecture* (2017); Uncle Bob's blog
+      - Hexagonal / Ports & Adapters → Alistair Cockburn (2005); Vaughn Vernon, *Implementing Domain-Driven Design*
+      - DDD → Eric Evans, *Domain-Driven Design* (2003); Vaughn Vernon, *Implementing DDD* (2013)
+      - Clean architecture → Martin, *Clean Architecture* (2017)
+      - Cyfrin Standards (Solidity) → cyfrin.io/blog/cyfrin-solidity-style-guide ; Patrick Collins
+      - FREI-PI → Cyfrin / Pashov audits methodology
+      - Functional-first → SICP; Rich Hickey "Simple Made Easy"
 2. Tool audit (Already installed / Add / Drop / Bump)
 3. Prerequisites (what must exist before Session 01)
 4. Architecture summary (with ASCII diagrams for non-trivial flows)
 5. Domain model (table with constraints, types, relationships)
 6. Session-by-session workflow:
-   - Per-session table: NN | title | goal | PREREQUISITE | CAN PARALLEL WITH | verify_phases | session_kind | estimated_minutes | compliance_regimes (only column populated when Q6 ≠ none)
+   - Per-session table: NN | title | goal | PREREQUISITE | CAN PARALLEL WITH | verify_phases | session_kind | estimated_minutes | compliance_regimes (only column populated when Q6 ≠ none) | principles_apply (boolean — true when 1a/§3a is non-empty AND the session is expected to apply the declared principles; defaults to true when Q11 was answered, false otherwise)
 7. Prompt strategy (how prompts coordinate)
 7a. **Compliance regimes** (ONLY emit this section when Q6 ≠ none): per-regime obligations table, control-owner per criterion, regime → injected session mapping, evidence directory layout (`.evidence/<regime>/<criterion>/`).
 8. Verification strategy (per-session phase enablement map; ties to Q5; explicitly notes when 6I is enabled)
@@ -616,7 +681,7 @@ Then the body sections in order:
 
 6. **SCOPE**: TOUCH / CREATE / DELETE / DO NOT TOUCH / on-demand retrieval note.
 
-7. **RESEARCH** (3-6 bullets, dated topics): "today is <Month YYYY>", session-specific 2026 topics for WebSearch + context7. If a relevant skill is missing per skills.json, inject the inline fallback query.
+7. **RESEARCH** (3-6 bullets, dated topics): "today is <Month YYYY>", session-specific 2026 topics for WebSearch + context7. If a relevant skill is missing per skills.json, inject the inline fallback query. **If `00-preamble.md` declares architecture principles (§3a), append a research bullet: "Apply principles from 00-preamble.md §3a — verify their canonical mapping to this stack/session via WebSearch + context7 if uncertain about how a principle expresses in this codebase."**
 
 8. **TASKS**: numbered, format `N. VERB(file): intent` + sub-bullets for deliverables. For TDD sessions: explicit RED → GREEN → REFACTOR phasing.
 
@@ -799,7 +864,7 @@ PHASES 1..N (run only those in scope per Phase 0 + frontmatter `verify_phases`):
   Tests passing ≠ code is good. For EVERY material code change this session, emit findings grounded in code + external authority.
 
   - **6A — Correctness trace** (per new/modified function): file:line + quoted snippet + 1-sentence trace of intent vs goal + verdict.
-  - **6B — 2026 best-practices cross-check** (WebSearch + context7 mandatory, or fallback per skills.json): pattern + authority URL/skill + verdict ALIGNED/DRIFT/ANTI-PATTERN.
+  - **6B — 2026 best-practices cross-check** (WebSearch + context7 mandatory, or fallback per skills.json): pattern + authority URL/skill + verdict ALIGNED/DRIFT/ANTI-PATTERN. **If `00-preamble.md` §3a declares architecture principles, ALSO cross-check the session's code against those declared principles. Conflicts between a declared principle and 2026 best-practice get a separate finding with BOTH authorities cited (declared-principle source + 2026 source) and a `verdict: PRINCIPLE_VS_2026_CONFLICT` flag — the human resolves; do NOT silently pick a side. Per-principle violations (declared principle exists but session code violates it) get a normal finding with `authority: <declared-principle-source>` and `verdict: ANTI-PATTERN`.**
   - **6C — Test quality**: behavior-vs-implementation, tautology check, NOT-tested list, fuzz/property coverage.
   - **6D — Hidden bugs / footgun scan**: edge cases, unchecked external calls, silent failures, memory leaks, async ordering.
   - **6E — Pattern cohesion**: matches existing repo patterns? Fights ARCHITECTURE.md? Premature abstraction?
@@ -934,6 +999,7 @@ Valid JSON example (this is the actual file content, copy as starting skeleton):
     "started_at": "2026-04-28T22:00:00Z",
     "updated_at": "2026-04-28T22:00:00Z",
     "answers": {},
+    "principles": "",
     "preflight": {
       "git_ok": true,
       "platform_cli_ok": true,
